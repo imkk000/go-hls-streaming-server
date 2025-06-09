@@ -54,7 +54,7 @@ func main() {
 			},
 		})
 	})
-	e.Start(":54321")
+	e.Start("127.0.0.1:54321")
 }
 
 type M = map[string]any
