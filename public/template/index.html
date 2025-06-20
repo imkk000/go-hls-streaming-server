@@ -54,7 +54,7 @@
     </div>
     {{end}}
   </div>
-  <video id="video" preload="metadata" poster="{{.Thumbnail}}" controls>
+  <video id="video" preload="metadata" controls>
     {{range .Subtitles}}
     <track kind="subtitles" src="{{.Src}}" srclang="{{.Lang}}" label="{{.Label}}" {{if .IsDefault}}default{{end}} />
     {{end}}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 )
 
 type Template struct {
@@ -23,6 +24,7 @@ func main() {
 	e := echo.New()
 	e.Use(
 		middleware.RequestID(),
+		middleware.Recover(),
 		middleware.Logger(),
 	)
 	e.Static("js", "public/js")
@@ -41,9 +43,8 @@ func main() {
 			paths[i] = dirs[i].Name()
 		}
 		return c.Render(http.StatusOK, "index.html", Render{
-			Dirs:      paths,
-			Path:      fmt.Sprintf("%s/playlist.m3u8", path),
-			Thumbnail: fmt.Sprintf("%s/thumbnail.png", path),
+			Dirs: paths,
+			Path: fmt.Sprintf("%s/playlist.m3u8", path),
 			Subtitles: []Subtitle{
 				{
 					Src:       fmt.Sprintf("%s/subtitle.vtt", path),
@@ -54,7 +55,12 @@ func main() {
 			},
 		})
 	})
-	e.Start("127.0.0.1:54321")
+
+	addr := "127.0.0.1:54321"
+	log.Info().Msgf("start server %s", addr)
+	if err := e.StartTLS(addr, "cert.pem", "key.pem"); err != nil {
+		log.Fatal().Err(err).Msg("start server")
+	}
 }
 
 type M = map[string]any
@@ -62,7 +68,6 @@ type M = map[string]any
 type Render struct {
 	Dirs      []string
 	Path      string
-	Thumbnail string
 	Subtitles []Subtitle
 }
 
