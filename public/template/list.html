@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Streaming List</title>
+  <style>
+    html,
+    body {
+      background-color: black;
+      color: darkgrey;
+    }
+
+    .cover {
+      width: auto;
+      height: 200px;
+    }
+
+    .flex-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flex-item {
+      margin: 5px;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="flex-container">
+    {{range .Dirs}}
+    <div class="flex-item">
+      <a href="/?path={{.}}">
+        <img src="{{.}}/cover.jpg" alt="{{.}}" class="cover" />
+      </a>
+    </div>
+    {{end}}
+  </div>
+</body>
+
+</html>

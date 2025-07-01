@@ -21,39 +21,10 @@
       min-height: 100%;
       margin-top: 10px;
     }
-
-    .cover {
-      width: auto;
-      height: 175px;
-    }
-
-    .flex-container {
-      display: flex;
-      flex-wrap: nowrap;
-      justify-content: left;
-      overflow-x: auto;
-      -ms-overflow-style: -ms-autohiding-scrollbar;
-      scrollbar-width: thin;
-    }
-
-    .flex-item {
-      margin: 5px;
-      margin-bottom: 0;
-      text-align: center;
-    }
   </style>
 </head>
 
 <body>
-  <div class="flex-container">
-    {{range .Dirs}}
-    <div class="flex-item">
-      <a href="/?path={{.}}">
-        <img src="{{.}}/cover.jpg" alt="Cover" class="cover" />
-      </a>
-    </div>
-    {{end}}
-  </div>
   <video id="video" preload="metadata" controls>
     {{range .Subtitles}}
     <track kind="subtitles" src="{{.Src}}" srclang="{{.Lang}}" label="{{.Label}}" {{if .IsDefault}}default{{end}} />
