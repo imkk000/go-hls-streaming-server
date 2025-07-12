@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -49,31 +49,23 @@ func main() {
 			"Dirs": paths,
 		})
 	})
+	e.GET("js/hls.render.js", func(c echo.Context) error {
+		path := c.QueryParam("path")
+		nowNano := time.Now().UnixNano()
+
+		content := fmt.Sprintf(hlsScriptTemplate, path, nowNano, path, nowNano)
+		c.Response().Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		return c.String(http.StatusOK, content)
+	})
+
 	e.GET("/", func(c echo.Context) error {
 		path := c.QueryParam("path")
 		if path == "" {
 			return c.Redirect(http.StatusMovedPermanently, "/playlist")
 		}
-
-		var subtitles []Subtitle
-		if path != "" {
-			filename := filepath.Join(path, "subtitle.vtt")
-			subtitleFilename := filepath.Join(segmentsDir, filename)
-			if _, err := os.Stat(subtitleFilename); err == nil {
-				subtitles = []Subtitle{
-					{
-						Src:       filename,
-						Lang:      "en",
-						Label:     "English",
-						IsDefault: true,
-					},
-				}
-			}
-		}
-
-		return c.Render(http.StatusOK, "index.html", Render{
-			Path:      fmt.Sprintf("%s/playlist.m3u8", path),
-			Subtitles: subtitles,
+		return c.Render(http.StatusOK, "index.html", echo.Map{
+			"Path":      path,
+			"Timestamp": time.Now().UnixNano(),
 		})
 	})
 
@@ -88,17 +80,21 @@ func main() {
 	}
 }
 
-type M = map[string]any
-
-type Render struct {
-	Dirs      []string
-	Path      string
-	Subtitles []Subtitle
-}
-
-type Subtitle struct {
-	Src       string
-	Lang      string
-	Label     string
-	IsDefault bool
-}
+const hlsScriptTemplate = `
+const video = document.getElementById('video');
+const hls = new Hls();
+hls.loadSource('/%s/playlist.m3u8?v=%d');
+hls.attachMedia(video);
+hls.on(Hls.Events.MANIFEST_LOADED, () => {
+	video.appendChild(Object.assign(document.createElement('track'), {
+		kind: 'subtitles',
+		src: '/%s/subtitles.vtt?v=%d',
+		srclang: 'en',
+		label: 'English',
+		default: true,
+	}));
+});
+hls.on(Hls.Events.ERROR, (event, data) => {
+	console.log('HLS Error:', data);
+});
+`
