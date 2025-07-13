@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Streaming List</title>
+  <link rel="icon" href="data:;base64,=" />
+  <title>Home Streaming</title>
   <style>
     html,
     body {
@@ -34,12 +35,39 @@
   <div class="flex-container">
     {{range .Dirs}}
     <div class="flex-item">
-      <a href="/?path={{.}}">
-        <img src="{{.}}/cover.jpg" alt="{{.}}" class="cover" />
+      <a href="{{.URL}}">
+        <img src="{{.Dir}}/cover.jpg" onerror="createSVGPlaceholder(this, 135, 200, {{.Dir}})" alt="{{.Dir}}"
+          class="cover" />
       </a>
     </div>
     {{end}}
   </div>
+
+  <script>
+    function createSVGPlaceholder(
+      img,
+      width,
+      height,
+      text,
+      bgColor = "#444",
+      textColor = "#ffff00",
+    ) {
+      const svg = `
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="${bgColor}"/>
+            <text x="50%" y="50%"
+                  dominant-baseline="central"
+                  text-anchor="middle"
+                  fill="${textColor}"
+                  font-size="${Math.min(width, height) / 6}"
+                  font-weight="bold"
+                  font-family="Arial, sans-serif">
+                ${text}
+            </text>
+        </svg>`;
+      img.src = "data:image/svg+xml;base64," + btoa(svg);
+    }
+  </script>
 </body>
 
 </html>

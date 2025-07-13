@@ -1,0 +1,49 @@
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/roboto.ttf");
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background-color: black;
+  font-family: "Roboto", sans-serif;
+}
+
+video {
+  width: 100%;
+  height: 80vh;
+  min-width: 100%;
+  min-height: 100%;
+  margin-top: 10px;
+}
+
+.plyr__captions {
+  color: yellow !important;
+  background: transparent !important;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.8),
+    1px -1px 0 rgba(0, 0, 0, 0.8),
+    -1px 1px 0 rgba(0, 0, 0, 0.8),
+    1px 1px 0 rgba(0, 0, 0, 0.8),
+    -2px 0 0 rgba(0, 0, 0, 0.8),
+    2px 0 0 rgba(0, 0, 0, 0.8),
+    0 -2px 0 rgba(0, 0, 0, 0.8),
+    0 2px 0 rgba(0, 0, 0, 0.8) !important;
+  font-size: 21px !important;
+  font-weight: bold !important;
+}
+
+.plyr__caption {
+  color: #ffff00 !important;
+  background: none !important;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.7),
+    1px -1px 0 rgba(0, 0, 0, 0.7),
+    -1px 1px 0 rgba(0, 0, 0, 0.7),
+    1px 1px 0 rgba(0, 0, 0, 0.7) !important;
+}
