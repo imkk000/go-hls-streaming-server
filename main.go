@@ -30,6 +30,13 @@ func main() {
 		middleware.RequestID(),
 		middleware.Recover(),
 		middleware.Logger(),
+		// middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		// 	if subtle.ConstantTimeCompare([]byte(username), []byte("kk")) == 1 &&
+		// 		subtle.ConstantTimeCompare([]byte(password), []byte("CiZei8k*8q-A7nPBWDCNy6wp_.!8qQbCqJ4WQ2u9MuEXTEADwg7yF_!.xyCQZsaC")) == 1 {
+		// 		return true, nil
+		// 	}
+		// 	return false, nil
+		// }),
 	)
 	e.Static("js", "public/js")
 	e.Static("", segmentsDir)
@@ -81,7 +88,8 @@ func main() {
 }
 
 const hlsScriptTemplate = `
-const video = document.getElementById('video');
+const video = document.getElementById('player');
+const player = new Plyr(video, {captions: {active: true, update: true}});
 const hls = new Hls();
 hls.loadSource('/%s/playlist.m3u8?v=%d');
 hls.attachMedia(video);
@@ -96,5 +104,8 @@ hls.on(Hls.Events.MANIFEST_LOADED, () => {
 });
 hls.on(Hls.Events.ERROR, (event, data) => {
 	console.log('HLS Error:', data);
+});
+player.on('languagechange', () => {
+	setTimeout(() => hls.subtitleTrack = player.currentTrack, 50);
 });
 `

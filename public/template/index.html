@@ -22,12 +22,16 @@
       margin-top: 10px;
     }
   </style>
+  <link rel="stylesheet" href="/js/plyr.css" />
 </head>
 
 <body>
-  <video id="video" preload="metadata" controls></video>
-  <script src="js/hls.min.js"></script>
-  <script src="js/hls.render.js?path={{.Path}}&v={{.Timestamp}}"></script>
+  <video id="player" playsinline crossorigin controls></video>
+  <p><a href="/playlist">Back to Playlist</a></p>
+
+  <script src="/js/hls.min.js"></script>
+  <script src="/js/plyr.js"></script>
+  <script src="/js/hls.render.js?path={{.Path}}&v={{.Timestamp}}"></script>
 </body>
 
 </html>
