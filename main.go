@@ -40,13 +40,6 @@ func main() {
 		middleware.RequestID(),
 		middleware.Recover(),
 		middleware.Logger(),
-		middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-			if subtle.ConstantTimeCompare([]byte(username), []byte("kk")) == 1 &&
-				subtle.ConstantTimeCompare([]byte(password), []byte("CiZei8k*8q-A7nPBWDCNy6wp_.!8qQbCqJ4WQ2u9MuEXTEADwg7yF_!.xyCQZsaC")) == 1 {
-				return true, nil
-			}
-			return false, nil
-		}),
 	)
 	e.Static("js", "public/js")
 	e.Static("css", "public/css")
@@ -55,7 +48,24 @@ func main() {
 	e.Renderer = &Template{
 		templates: template.Must(template.ParseGlob("public/template/*.html")),
 	}
-	e.GET("/playlist", func(c echo.Context) error {
+	g := e.Group("/", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		if subtle.ConstantTimeCompare([]byte(username), []byte("kk")) == 1 &&
+			subtle.ConstantTimeCompare([]byte(password), []byte("CiZei8k*8q-A7nPBWDCNy6wp_.!8qQbCqJ4WQ2u9MuEXTEADwg7yF_!.xyCQZsaC")) == 1 {
+			return true, nil
+		}
+		return false, nil
+	}))
+	g.GET("", func(c echo.Context) error {
+		path := c.QueryParam("path")
+		if path == "" {
+			return c.Redirect(http.StatusMovedPermanently, "/playlist")
+		}
+		return c.Render(http.StatusOK, "index.html", echo.Map{
+			"Path":      path,
+			"Timestamp": time.Now().UnixNano(),
+		})
+	})
+	g.GET("playlist", func(c echo.Context) error {
 		series := c.QueryParam("s")
 		if series != "" {
 			path, err := filepath.Abs(series)
@@ -99,16 +109,6 @@ func main() {
 		c.Response().Header().Set("Content-Type", "text/javascript; charset=utf-8")
 		return c.String(http.StatusOK, content)
 	})
-	e.GET("/", func(c echo.Context) error {
-		path := c.QueryParam("path")
-		if path == "" {
-			return c.Redirect(http.StatusMovedPermanently, "/playlist")
-		}
-		return c.Render(http.StatusOK, "index.html", echo.Map{
-			"Path":      path,
-			"Timestamp": time.Now().UnixNano(),
-		})
-	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -123,27 +123,6 @@ func main() {
 
 const hlsScriptTemplate = `
 const video = document.getElementById("player");
-const player = new Plyr(video, {
-  controls: [
-    "play-large",
-    "restart",
-    "rewind",
-    "play",
-    "fast-forward",
-    "progress",
-    "current-time",
-    "duration",
-    "mute",
-    "volume",
-    "captions",
-    "settings",
-    "fullscreen",
-  ],
-  captions: {
-    active: true,
-    update: true,
-  },
-});
 const hls = new Hls();
 hls.loadSource("/%s/playlist.m3u8?v=%d");
 hls.attachMedia(video);
@@ -160,9 +139,6 @@ hls.on(Hls.Events.MANIFEST_LOADED, () => {
 });
 hls.on(Hls.Events.ERROR, (event, data) => {
   console.log("HLS Error:", data);
-});
-player.on("languagechange", () => {
-  setTimeout(() => (hls.subtitleTrack = player.currentTrack), 50);
 });
 `
 
