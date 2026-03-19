@@ -116,7 +116,7 @@ func main() {
 	}
 	addr := fmt.Sprintf("127.0.0.1:%s", port)
 	log.Info().Msgf("start server %s", addr)
-	if err := e.StartTLS(addr, "cert.pem", "key.pem"); err != nil {
+	if err := e.Start(addr); err != nil {
 		log.Fatal().Err(err).Msg("start server")
 	}
 }

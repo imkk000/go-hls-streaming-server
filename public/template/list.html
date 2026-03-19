@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
@@ -7,65 +7,181 @@
   <link rel="icon" href="data:;base64,=" />
   <title>Home Streaming</title>
   <style>
-    html,
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background-color: black;
-      color: darkgrey;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
     }
 
-    .cover {
-      width: auto;
-      height: 200px;
+    header {
+      padding: 2rem 2rem 1rem;
+      border-bottom: 1px solid #1e1e2e;
     }
 
-    .flex-container {
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #c084fc;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1.2rem;
+      padding: 2rem;
+    }
+
+    .card {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #13131a;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      aspect-ratio: 2/3;
+    }
+
+    .card:hover {
+      transform: scale(1.06) translateY(-4px);
+      box-shadow: 0 16px 40px rgba(192, 132, 252, 0.25);
+      z-index: 10;
+    }
+
+    .card a {
+      display: block;
+      width: 100%;
+      height: 100%;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover img {
+      opacity: 0.85;
+    }
+
+    .card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 2rem 0.75rem 0.75rem;
+      background: linear-gradient(transparent, rgba(0,0,0,0.92));
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .card:hover .card-overlay {
+      opacity: 1;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
+
+    .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 44px;
+      height: 44px;
+      background: rgba(192, 132, 252, 0.9);
+      border-radius: 50%;
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease, transform 0.25s ease;
     }
 
-    .flex-item {
-      margin: 5px;
-      margin-bottom: 0;
+    .card:hover .play-icon {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .play-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+      margin-left: 3px;
     }
   </style>
 </head>
 
 <body>
-  <div class="flex-container">
+  <header>
+    <h1>Home Streaming</h1>
+  </header>
+
+  <div class="grid">
     {{range .Dirs}}
-    <div class="flex-item">
+    <div class="card">
       <a href="{{.URL}}">
-        <img src="{{.Dir}}/cover.jpg" onerror="createSVGPlaceholder(this, 135, 200, {{.Dir}})" alt="{{.Dir}}"
-          class="cover" />
+        <img src="{{.Dir}}/cover.jpg" onerror="createSVGPlaceholder(this, 200, 300, '{{.Dir}}')" alt="{{.Dir}}" />
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="card-overlay">
+          <div class="card-title">{{.Dir}}</div>
+        </div>
       </a>
     </div>
     {{end}}
   </div>
 
   <script>
-    function createSVGPlaceholder(
-      img,
-      width,
-      height,
-      text,
-      bgColor = "#444",
-      textColor = "#ffff00",
-    ) {
-      const svg = `
-        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100%" height="100%" fill="${bgColor}"/>
-            <text x="50%" y="50%"
-                  dominant-baseline="central"
-                  text-anchor="middle"
-                  fill="${textColor}"
-                  font-size="${Math.min(width, height) / 6}"
-                  font-weight="bold"
-                  font-family="Arial, sans-serif">
-                ${text}
-            </text>
-        </svg>`;
-      img.src = "data:image/svg+xml;base64," + btoa(svg);
+    function createSVGPlaceholder(img, width, height, text, bgColor = "#1a1a2e", textColor = "#c084fc") {
+      const words = text.split(/[\s_\-]+/).filter(Boolean);
+      const lines = [];
+      let line = '';
+      const maxChars = 14;
+      for (const word of words) {
+        if ((line + ' ' + word).trim().length > maxChars && line) {
+          lines.push(line.trim());
+          line = word;
+        } else {
+          line = (line + ' ' + word).trim();
+        }
+      }
+      if (line) lines.push(line);
+
+      const fs = Math.min(width, height) / 10;
+      const lineH = fs * 1.4;
+      const startY = height / 2 - (lines.length - 1) * lineH / 2;
+      const textEls = lines.map((l, i) =>
+        `<text x="50%" y="${startY + i * lineH}" dominant-baseline="central" text-anchor="middle"
+         fill="${textColor}" font-size="${fs}" font-weight="bold" font-family="Arial, sans-serif">${l}</text>`
+      ).join('');
+
+      const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1a1a2e"/>
+            <stop offset="100%" stop-color="#0d0d1a"/>
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#g)"/>
+        <rect x="10" y="10" width="${width-20}" height="${height-20}" rx="4" fill="none" stroke="${textColor}" stroke-opacity="0.2" stroke-width="1"/>
+        ${textEls}
+      </svg>`;
+      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
     }
   </script>
 </body>

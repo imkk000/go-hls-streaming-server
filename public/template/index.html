@@ -7,12 +7,106 @@
   <link rel="icon" href="data:;base64,=" />
   <title>Home Streaming</title>
   <link rel="stylesheet" href="/css/plyr.css" />
-  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #07070d;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      padding: 0.9rem 1.5rem;
+      background: rgba(10, 10, 20, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1e1e30;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: #a78bfa;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      border: 1px solid #3b2d6b;
+      background: rgba(167, 139, 250, 0.07);
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(167, 139, 250, 0.18);
+      color: #c4b5fd;
+      border-color: #6d4fcb;
+    }
+
+    .back-btn svg {
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+    }
+
+    .player-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .player-container {
+      width: 100%;
+      max-width: 1100px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.04);
+      background: #000;
+    }
+
+    #player {
+      width: 100%;
+      display: block;
+    }
+
+    /* Plyr theme overrides */
+    :root {
+      --plyr-color-main: #c084fc;
+      --plyr-video-background: #000;
+      --plyr-control-radius: 6px;
+    }
+  </style>
 </head>
 
 <body>
-  <video id="player" playsinline crossorigin controls></video>
-  <span><a href="/playlist">Back to Playlist</a></span>
+  <nav>
+    <a class="back-btn" href="/playlist">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      Playlist
+    </a>
+  </nav>
+
+  <div class="player-wrap">
+    <div class="player-container">
+      <video id="player" playsinline crossorigin controls></video>
+    </div>
+  </div>
 
   <script src="/js/hls.min.js"></script>
   <script src="/js/plyr.js"></script>
