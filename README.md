@@ -4,6 +4,7 @@
 
 I want to implement simple own home web streaming server. No need other provider, because I just need to watch a movie.
 Require `basic auth` username and password. I use `cloudflared` to online without expose public IP.
+It supports picture-in-picture mode too, so is good to watch on ipad, mobile phone, and browser.
 
 ## How?
 
