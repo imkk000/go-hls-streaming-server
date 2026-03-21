@@ -2,4 +2,7 @@
 version: 3
 tasks:
   build: go build -ldflags="-w -s" -o server .
-  deploy: sudo systemctl restart media.service
+  deploy:
+    cmds:
+      - systemctl --user daemon-reload
+      - systemctl --user restart media.service

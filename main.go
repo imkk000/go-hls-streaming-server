@@ -2,6 +2,8 @@ package main
 
 import (
 	"crypto/subtle"
+	"errors"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -17,8 +19,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const segmentsDir = "segments"
-
 type Template struct {
 	templates *template.Template
 }
@@ -28,6 +28,20 @@ func (t *Template) Render(w io.Writer, name string, data any, c echo.Context) er
 }
 
 func main() {
+	var user, pass string
+	var segmentsDir string
+	var port int
+
+	flag.StringVar(&user, "user", "", "set basic auth username")
+	flag.StringVar(&pass, "pass", "", "set basic auth password")
+	flag.StringVar(&segmentsDir, "segments", "segments", "set segments path")
+	flag.IntVar(&port, "port", 54321, "set server port")
+	flag.Parse()
+
+	if len(user) == 0 || len(pass) == 0 {
+		log.Fatal().Err(errors.New("empty basic auth")).Msg("check basic authentication")
+	}
+
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal().Err(err).Msg("get current working directory")
@@ -49,8 +63,8 @@ func main() {
 		templates: template.Must(template.ParseGlob("public/template/*.html")),
 	}
 	g := e.Group("/", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		if subtle.ConstantTimeCompare([]byte(username), []byte("kk")) == 1 &&
-			subtle.ConstantTimeCompare([]byte(password), []byte("CiZei8k*8q-A7nPBWDCNy6wp_.!8qQbCqJ4WQ2u9MuEXTEADwg7yF_!.xyCQZsaC")) == 1 {
+		if subtle.ConstantTimeCompare([]byte(username), []byte(user)) == 1 &&
+			subtle.ConstantTimeCompare([]byte(password), []byte(pass)) == 1 {
 			return true, nil
 		}
 		return false, nil
@@ -110,12 +124,8 @@ func main() {
 		return c.String(http.StatusOK, content)
 	})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "54321"
-	}
-	addr := fmt.Sprintf("127.0.0.1:%s", port)
-	log.Info().Msgf("start server %s", addr)
+	addr := fmt.Sprintf("127.0.0.1:%d", port)
+	log.Info().Msgf("start server %d", addr)
 	if err := e.Start(addr); err != nil {
 		log.Fatal().Err(err).Msg("start server")
 	}
