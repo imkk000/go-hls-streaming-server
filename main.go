@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"crypto/subtle"
 	"errors"
 	"flag"
@@ -42,6 +43,10 @@ func main() {
 		log.Fatal().Err(errors.New("empty basic auth")).Msg("check basic authentication")
 	}
 
+	// fix response leak length key
+	userHash := sha256.Sum256([]byte(user))
+	passHash := sha256.Sum256([]byte(pass))
+
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal().Err(err).Msg("get current working directory")
@@ -63,8 +68,11 @@ func main() {
 		templates: template.Must(template.ParseGlob("public/template/*.html")),
 	}
 	g := e.Group("/", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		if subtle.ConstantTimeCompare([]byte(username), []byte(user)) == 1 &&
-			subtle.ConstantTimeCompare([]byte(password), []byte(pass)) == 1 {
+		inputUserHash := sha256.Sum256([]byte(username))
+		inputPassHash := sha256.Sum256([]byte(username))
+
+		if subtle.ConstantTimeCompare(userHash[:], inputUserHash[:]) == 1 &&
+			subtle.ConstantTimeCompare(passHash[:], inputPassHash[:]) == 1 {
 			return true, nil
 		}
 		return false, nil
