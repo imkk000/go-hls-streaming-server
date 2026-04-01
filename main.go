@@ -69,7 +69,7 @@ func main() {
 	}
 	g := e.Group("/", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
 		inputUserHash := sha256.Sum256([]byte(username))
-		inputPassHash := sha256.Sum256([]byte(username))
+		inputPassHash := sha256.Sum256([]byte(password))
 
 		if subtle.ConstantTimeCompare(userHash[:], inputUserHash[:]) == 1 &&
 			subtle.ConstantTimeCompare(passHash[:], inputPassHash[:]) == 1 {
