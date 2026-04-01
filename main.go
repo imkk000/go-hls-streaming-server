@@ -133,7 +133,7 @@ func main() {
 	})
 
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
-	log.Info().Msgf("start server %d", addr)
+	log.Info().Msgf("start server %s", addr)
 	if err := e.Start(addr); err != nil {
 		log.Fatal().Err(err).Msg("start server")
 	}
