@@ -20,6 +20,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var addrFormat = "127.0.0.1:%d"
+
 type Template struct {
 	templates *template.Template
 }
@@ -132,7 +134,7 @@ func main() {
 		return c.String(http.StatusOK, content)
 	})
 
-	addr := fmt.Sprintf("127.0.0.1:%d", port)
+	addr := fmt.Sprintf(addrFormat, port)
 	log.Info().Msgf("start server %s", addr)
 	if err := e.Start(addr); err != nil {
 		log.Fatal().Err(err).Msg("start server")
