@@ -31,17 +31,19 @@ func (t *Template) Render(w io.Writer, name string, data any, c echo.Context) er
 }
 
 func main() {
+	var enabledAuth bool
 	var user, pass string
 	var segmentsDir string
 	var port int
 
+	flag.BoolVar(&enabledAuth, "auth", true, "set enabled basic auth")
 	flag.StringVar(&user, "user", "", "set basic auth username")
 	flag.StringVar(&pass, "pass", "", "set basic auth password")
 	flag.StringVar(&segmentsDir, "segments", "segments", "set segments path")
 	flag.IntVar(&port, "port", 54321, "set server port")
 	flag.Parse()
 
-	if len(user) == 0 || len(pass) == 0 {
+	if enabledAuth && (len(user) == 0 || len(pass) == 0) {
 		log.Fatal().Err(errors.New("empty basic auth")).Msg("check basic authentication")
 	}
 
@@ -69,16 +71,19 @@ func main() {
 	e.Renderer = &Template{
 		templates: template.Must(template.ParseGlob("public/template/*.html")),
 	}
-	g := e.Group("/", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		inputUserHash := sha256.Sum256([]byte(username))
-		inputPassHash := sha256.Sum256([]byte(password))
+	g := e.Group("/")
+	if enabledAuth {
+		g.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+			inputUserHash := sha256.Sum256([]byte(username))
+			inputPassHash := sha256.Sum256([]byte(password))
 
-		if subtle.ConstantTimeCompare(userHash[:], inputUserHash[:]) == 1 &&
-			subtle.ConstantTimeCompare(passHash[:], inputPassHash[:]) == 1 {
-			return true, nil
-		}
-		return false, nil
-	}))
+			if subtle.ConstantTimeCompare(userHash[:], inputUserHash[:]) == 1 &&
+				subtle.ConstantTimeCompare(passHash[:], inputPassHash[:]) == 1 {
+				return true, nil
+			}
+			return false, nil
+		}))
+	}
 	g.GET("", func(c echo.Context) error {
 		path := c.QueryParam("path")
 		if path == "" {
