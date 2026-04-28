@@ -56,14 +56,13 @@ segments
 
 ```sh
 # build
-task build
-
-# deploy to systemd with my user (rootless)
-# creates media.service into ~/.config/systemd/user/
-task deploy
+go build -o server .
 
 # run locally (uses 127.0.0.1)
 ./server --user <user> --pass <pass>
+
+# run without auth (dev only)
+./server --auth=false
 ```
 
 | flag       | description             | required | default    |
@@ -76,12 +75,13 @@ task deploy
 
 ## API
 
-| method | path                        | description                          |
-| ------ | --------------------------- | ------------------------------------ |
-| GET    | `/playlist`                 | root directory browser               |
-| GET    | `/playlist?s=<path>`        | subdirectory browser                 |
-| GET    | `/?path=<path>`             | video player for a given path        |
-| GET    | `/progress?path=<path>`     | get saved playback timestamp         |
-| POST   | `/progress?path=<path>`     | save playback timestamp `{"t": 123}` |
+| method | path                                  | description                                    |
+| ------ | ------------------------------------- | ---------------------------------------------- |
+| GET    | `/playlist`                           | root directory browser                         |
+| GET    | `/playlist?s=<path>`                  | subdirectory browser                           |
+| GET    | `/?path=<path>`                       | video player for a given path                  |
+| GET    | `/js/hls.render.js?path=<path>&v=<n>` | dynamically generated HLS + subtitle loader JS |
+| GET    | `/progress?path=<path>`               | get saved playback timestamp                   |
+| POST   | `/progress?path=<path>`               | save playback timestamp `{"t": 123}`           |
 
-> Note: playback timestamps are stored in-memory only and reset when the server restarts.
+> Note: playback timestamps are stored in-memory only and reset when the server restarts. On video end, the timestamp is reset to 0.
