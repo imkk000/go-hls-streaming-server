@@ -91,6 +91,38 @@
       --plyr-video-background: #000;
       --plyr-control-radius: 6px;
     }
+
+    #resume-bar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1.5rem;
+      background: rgba(167, 139, 250, 0.1);
+      border-bottom: 1px solid #3b2d6b;
+      font-size: 0.85rem;
+      color: #c4b5fd;
+    }
+
+    #resume-bar button {
+      padding: 0.3rem 0.8rem;
+      border-radius: 5px;
+      border: 1px solid #3b2d6b;
+      background: rgba(167, 139, 250, 0.15);
+      color: #c4b5fd;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+
+    #resume-bar button:hover {
+      background: rgba(167, 139, 250, 0.3);
+    }
+
+    #resume-bar button.primary {
+      background: rgba(167, 139, 250, 0.3);
+      border-color: #6d4fcb;
+    }
   </style>
 </head>
 
@@ -108,6 +140,12 @@
     {{end}}
   </nav>
 
+  <div id="resume-bar">
+    <span>Resume from <strong id="resume-time"></strong>?</span>
+    <button class="primary" onclick="resumeFrom()">Continue</button>
+    <button onclick="document.getElementById('resume-bar').style.display='none'">From beginning</button>
+  </div>
+
   <div class="player-wrap">
     <div class="player-container">
       <video id="player" playsinline crossorigin controls></video>
@@ -117,6 +155,58 @@
   <script src="/js/hls.min.js"></script>
   <script src="/js/plyr.js"></script>
   <script src="/js/hls.render.js?path={{.Path}}&v={{.Timestamp}}"></script>
+  <script>
+    const _videoPath = {{.Path}};
+    const _video = document.getElementById('player');
+    let _savedTime = 0;
+
+    function _fmt(s) {
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+      return h > 0
+        ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+        : `${m}:${String(sec).padStart(2,'0')}`;
+    }
+
+    function resumeFrom() {
+      _video.currentTime = _savedTime;
+      document.getElementById('resume-bar').style.display = 'none';
+    }
+
+    fetch(`/progress?path=${encodeURIComponent(_videoPath)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.t > 5) {
+          _savedTime = d.t;
+          document.getElementById('resume-time').textContent = _fmt(d.t);
+          document.getElementById('resume-bar').style.display = 'flex';
+        }
+      });
+
+    setInterval(() => {
+      if (!_video.paused && _video.currentTime > 0) {
+        fetch(`/progress?path=${encodeURIComponent(_videoPath)}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({t: _video.currentTime})
+        });
+      }
+    }, 5000);
+
+    _video.addEventListener('ended', () => {
+      fetch(`/progress?path=${encodeURIComponent(_videoPath)}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({t: 0})
+      });
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (_video.currentTime > 0) {
+        const blob = new Blob([JSON.stringify({t: _video.currentTime})], {type: 'application/json'});
+        navigator.sendBeacon(`/progress?path=${encodeURIComponent(_videoPath)}`, blob);
+      }
+    });
+  </script>
 </body>
 
 </html>

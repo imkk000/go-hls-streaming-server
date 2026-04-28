@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -21,6 +22,11 @@ import (
 )
 
 var addrFormat = "127.0.0.1:%d"
+
+var (
+	progressMu sync.RWMutex
+	progress   = make(map[string]float64)
+)
 
 type Template struct {
 	templates *template.Template
@@ -144,6 +150,26 @@ func main() {
 			"Dirs":      slices.Clip(list),
 			"ParentURL": parentURL,
 		})
+	})
+	g.GET("progress", func(c echo.Context) error {
+		path := c.QueryParam("path")
+		progressMu.RLock()
+		t := progress[path]
+		progressMu.RUnlock()
+		return c.JSON(http.StatusOK, echo.Map{"t": t})
+	})
+	g.POST("progress", func(c echo.Context) error {
+		path := c.QueryParam("path")
+		var body struct {
+			T float64 `json:"t"`
+		}
+		if err := c.Bind(&body); err != nil {
+			return err
+		}
+		progressMu.Lock()
+		progress[path] = body.T
+		progressMu.Unlock()
+		return c.NoContent(http.StatusNoContent)
 	})
 	e.GET("js/hls.render.js", func(c echo.Context) error {
 		path := c.QueryParam("path")
