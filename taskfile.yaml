@@ -1,7 +1,7 @@
 ---
 version: 3
 tasks:
-  build: go build -ldflags="-w -s" -o server .
+  build: docker build -t media .
   deploy:
     cmds:
       - systemctl --user daemon-reload

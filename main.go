@@ -89,9 +89,14 @@ func main() {
 		if path == "" {
 			return c.Redirect(http.StatusMovedPermanently, "/playlist")
 		}
+		parentURL := ""
+		if parent := filepath.Dir(path); parent != "." && parent != "" {
+			parentURL = fmt.Sprintf("/playlist?s=%s", parent)
+		}
 		return c.Render(http.StatusOK, "index.html", echo.Map{
 			"Path":      path,
 			"Timestamp": time.Now().UnixNano(),
+			"ParentURL": parentURL,
 		})
 	})
 	g.GET("playlist", func(c echo.Context) error {
@@ -126,8 +131,18 @@ func main() {
 			}
 			list = append(list, item)
 		}
+		parentURL := ""
+		if series != "" {
+			parent := filepath.Dir(series)
+			if parent == "." || parent == "" {
+				parentURL = "/playlist"
+			} else {
+				parentURL = fmt.Sprintf("/playlist?s=%s", parent)
+			}
+		}
 		return c.Render(http.StatusOK, "list.html", echo.Map{
-			"Dirs": slices.Clip(list),
+			"Dirs":      slices.Clip(list),
+			"ParentURL": parentURL,
 		})
 	})
 	e.GET("js/hls.render.js", func(c echo.Context) error {
