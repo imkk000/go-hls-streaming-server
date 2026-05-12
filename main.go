@@ -175,7 +175,7 @@ func main() {
 		path := c.QueryParam("path")
 		nowNano := time.Now().UnixNano()
 
-		content := fmt.Sprintf(hlsScriptTemplate, path, nowNano, path, nowNano)
+		content := fmt.Sprintf(hlsScriptTemplate, path, nowNano, path, nowNano, path, nowNano)
 		c.Response().Header().Set("Content-Type", "text/javascript; charset=utf-8")
 		return c.String(http.StatusOK, content)
 	})
@@ -189,23 +189,35 @@ func main() {
 
 const hlsScriptTemplate = `
 const video = document.getElementById("player");
-const hls = new Hls();
-hls.loadSource("/%s/playlist.m3u8?v=%d");
-hls.attachMedia(video);
-hls.on(Hls.Events.MANIFEST_LOADED, () => {
+const src = "/%s/playlist.m3u8?v=%d";
+const subSrc = "/%s/subtitles.vtt?v=%d";
+
+function attachSubtitles() {
   video.appendChild(
     Object.assign(document.createElement("track"), {
       kind: "subtitles",
-      src: "/%s/subtitles.vtt?v=%d",
+      src: subSrc,
       srclang: "en",
       label: "English",
       default: true,
     }),
   );
-});
-hls.on(Hls.Events.ERROR, (event, data) => {
-  console.log("HLS Error:", data);
-});
+}
+
+if (window.Hls && Hls.isSupported()) {
+  const hls = new Hls();
+  hls.loadSource("/%s/playlist.m3u8?v=%d");
+  hls.attachMedia(video);
+  hls.on(Hls.Events.MANIFEST_LOADED, attachSubtitles);
+  hls.on(Hls.Events.ERROR, (event, data) => {
+    console.log("HLS Error:", data);
+  });
+} else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+  video.src = src;
+  video.addEventListener("loadedmetadata", attachSubtitles, { once: true });
+} else {
+  console.log("HLS not supported in this browser");
+}
 `
 
 type List struct {
